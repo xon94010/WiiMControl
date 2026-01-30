@@ -1,0 +1,46 @@
+# SwiftLint Configuration for WiiMMenuBar
+
+disabled_rules:
+  - trailing_whitespace
+  - multiple_closures_with_trailing_closure  # Common in SwiftUI
+  - opening_brace  # SwiftFormat handles this differently for multi-line conditions
+
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+
+# Adjust thresholds for SwiftUI apps which tend to have longer view files
+file_length:
+  warning: 600
+  error: 1000
+
+type_body_length:
+  warning: 500
+  error: 800
+
+function_body_length:
+  warning: 100
+  error: 200
+
+line_length:
+  warning: 150
+  error: 200
+  ignores_urls: true
+  ignores_comments: true
+
+# Allow short names for API response fields
+identifier_name:
+  min_length:
+    warning: 1
+  excluded:
+    - id
+    - ch
+    - eq
+    - ms
+    - ip
+
+# Excluded paths
+excluded:
+  - Pods
+  - .build
+  - DerivedData
