@@ -399,6 +399,7 @@ struct MenuBarView: View {
             ScrollView {
                 infoContent(playerState: playerState)
             }
+            .background(Color.black.opacity(0.8))
             .frame(height: showInfo ? 280 : 0)
             .clipped()
             .opacity(showInfo ? 1 : 0)
