@@ -102,7 +102,7 @@ class PlayerState {
             try await service.togglePlayPause(isCurrentlyPlaying: isPlaying)
             await fetchStatus()
         } catch {
-            errorMessage = "Command failed"
+            errorMessage = formatError(error, action: "play/pause")
         }
     }
 
@@ -112,7 +112,7 @@ class PlayerState {
             try? await Task.sleep(nanoseconds: 500_000_000)
             await fetchStatus()
         } catch {
-            errorMessage = "Command failed"
+            errorMessage = formatError(error, action: "skip")
         }
     }
 
@@ -122,7 +122,7 @@ class PlayerState {
             try? await Task.sleep(nanoseconds: 500_000_000)
             await fetchStatus()
         } catch {
-            errorMessage = "Command failed"
+            errorMessage = formatError(error, action: "previous")
         }
     }
 
@@ -131,7 +131,7 @@ class PlayerState {
             try await service.setVolume(level)
             volume = level
         } catch {
-            errorMessage = "Volume command failed"
+            errorMessage = formatError(error, action: "set volume")
         }
     }
 
@@ -140,7 +140,7 @@ class PlayerState {
             try await service.setMute(!isMuted)
             isMuted = !isMuted
         } catch {
-            errorMessage = "Mute command failed"
+            errorMessage = formatError(error, action: "mute")
         }
     }
 
@@ -149,7 +149,7 @@ class PlayerState {
             try await service.seek(to: seconds)
             currentPosition = seconds
         } catch {
-            errorMessage = "Seek failed"
+            errorMessage = formatError(error, action: "seek")
         }
     }
 
@@ -176,7 +176,7 @@ class PlayerState {
             try await service.loadEQPreset(preset)
             currentEQ = preset
         } catch {
-            errorMessage = "Failed to set EQ"
+            errorMessage = formatError(error, action: "set EQ")
         }
     }
 
@@ -191,7 +191,7 @@ class PlayerState {
             // Load the preset artwork immediately
             await loadAlbumArt()
         } catch {
-            errorMessage = "Failed to play preset"
+            errorMessage = formatError(error, action: "play preset")
         }
     }
 
@@ -358,6 +358,21 @@ class PlayerState {
         albumInfo = nil
         linerNotesError = nil
         lastLinerNotesQuery = ""
+    }
+
+    /// Format error for display to user
+    private func formatError(_ error: Error, action: String) -> String {
+        if let wiimError = error as? WiiMError {
+            return wiimError.errorDescription ?? "Failed to \(action)"
+        }
+        // For other errors, provide context
+        let description = error.localizedDescription
+        if description.contains("timed out") {
+            return "Device not responding"
+        } else if description.contains("Could not connect") || description.contains("cannot find host") {
+            return "Cannot reach device"
+        }
+        return "Failed to \(action): \(description)"
     }
 }
 

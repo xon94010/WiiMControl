@@ -204,15 +204,25 @@ class WiiMService {
             throw WiiMError.invalidURL
         }
 
-        let (data, response) = try await session.data(from: url)
+        do {
+            let (data, response) = try await session.data(from: url)
 
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200 ... 299).contains(httpResponse.statusCode)
-        else {
-            throw WiiMError.httpError
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw WiiMError.networkError("Invalid response")
+            }
+
+            guard (200 ... 299).contains(httpResponse.statusCode) else {
+                throw WiiMError.httpError(statusCode: httpResponse.statusCode)
+            }
+
+            return data
+        } catch let urlError as URLError {
+            throw WiiMError.from(urlError)
+        } catch let wiimError as WiiMError {
+            throw wiimError
+        } catch {
+            throw WiiMError.networkError(error.localizedDescription)
         }
-
-        return data
     }
 
     func getPlayerStatus() async throws -> PlayerStatus {
@@ -347,19 +357,42 @@ struct WiiMPreset: Codable, Identifiable {
 enum WiiMError: LocalizedError {
     case noIPAddress
     case invalidURL
-    case httpError
-    case decodingError
+    case httpError(statusCode: Int)
+    case networkError(String)
+    case timeout
+    case decodingError(String)
+    case deviceUnreachable
 
     var errorDescription: String? {
         switch self {
         case .noIPAddress:
-            "No WiiM IP address configured"
+            "No WiiM device configured"
         case .invalidURL:
-            "Invalid URL"
-        case .httpError:
-            "HTTP request failed"
-        case .decodingError:
-            "Failed to decode response"
+            "Invalid device URL"
+        case .httpError(let statusCode):
+            "Device returned error (\(statusCode))"
+        case .networkError(let message):
+            "Network error: \(message)"
+        case .timeout:
+            "Device not responding"
+        case .decodingError(let message):
+            "Invalid response: \(message)"
+        case .deviceUnreachable:
+            "Cannot reach device"
+        }
+    }
+
+    /// Create from URLError
+    static func from(_ urlError: URLError) -> WiiMError {
+        switch urlError.code {
+        case .timedOut:
+            return .timeout
+        case .cannotConnectToHost, .cannotFindHost:
+            return .deviceUnreachable
+        case .notConnectedToInternet, .networkConnectionLost:
+            return .networkError("No internet connection")
+        default:
+            return .networkError(urlError.localizedDescription)
         }
     }
 }
