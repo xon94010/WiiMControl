@@ -22,5 +22,11 @@
     </array>
     <key>NSLocalNetworkUsageDescription</key>
     <string>WiiM Control needs to discover WiiM devices on your local network.</string>
+    <key>DISCOGS_CONSUMER_KEY</key>
+    <string>$(DISCOGS_CONSUMER_KEY)</string>
+    <key>DISCOGS_CONSUMER_SECRET</key>
+    <string>$(DISCOGS_CONSUMER_SECRET)</string>
+    <key>LASTFM_API_KEY</key>
+    <string>$(LASTFM_API_KEY)</string>
 </dict>
 </plist>

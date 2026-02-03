@@ -131,6 +131,18 @@ cd WiiMControl
 open WiiMMenuBar.xcodeproj
 ```
 
+### API Keys Setup
+
+The Info panel features require API keys from Discogs and Last.fm. To enable these:
+
+1. Copy the template: `cp Secrets.xcconfig.template Secrets.xcconfig`
+2. Get your free API keys:
+   - **Discogs**: https://www.discogs.com/settings/developers
+   - **Last.fm**: https://www.last.fm/api/account/create
+3. Edit `Secrets.xcconfig` and add your keys
+
+The app works without these keys - the Info panel will just be disabled.
+
 Build and run with ⌘R in Xcode.
 
 ## Project Structure

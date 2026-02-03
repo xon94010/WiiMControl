@@ -54,6 +54,7 @@
 		B1000001020 /* EQRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EQRowView.swift; sourceTree = "<group>"; };
 		B1000001022 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		B1000001024 /* DeviceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRow.swift; sourceTree = "<group>"; };
+		C1000001001 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +97,7 @@
 		A1000001017 = {
 			isa = PBXGroup;
 			children = (
+				C1000001001 /* Secrets.xcconfig */,
 				A1000001016 /* WiiMMenuBar */,
 				A1000001015 /* Products */,
 			);
@@ -363,6 +365,7 @@
 		};
 		A1000001026 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C1000001001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -390,6 +393,7 @@
 		};
 		A1000001027 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C1000001001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

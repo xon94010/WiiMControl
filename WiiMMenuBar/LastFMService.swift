@@ -2,9 +2,16 @@ import Foundation
 
 /// Service for fetching artist and album info from Last.fm API
 class LastFMService {
-    // Last.fm API key (free tier, no secret needed for read-only)
-    private let apiKey = "9fe264aea321a51caf3ae13812552fe2"
+    private let apiKey: String
     private let baseURL = "https://ws.audioscrobbler.com/2.0/"
+
+    init() {
+        self.apiKey = Bundle.main.infoDictionary?["LASTFM_API_KEY"] as? String ?? ""
+    }
+
+    var isConfigured: Bool {
+        !apiKey.isEmpty && !apiKey.contains("your_")
+    }
 
     private var session: URLSession {
         let config = URLSessionConfiguration.default
@@ -14,6 +21,11 @@ class LastFMService {
 
     /// Fetch artist biography
     func getArtistInfo(artist: String) async throws -> LastFMArtist? {
+        guard isConfigured else {
+            print("[Last.fm] API key not configured")
+            return nil
+        }
+
         guard let encodedArtist = artist.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               !encodedArtist.isEmpty else { return nil }
 
@@ -34,6 +46,8 @@ class LastFMService {
 
     /// Fetch album info with description
     func getAlbumInfo(artist: String, album: String) async throws -> LastFMAlbum? {
+        guard isConfigured else { return nil }
+
         guard let encodedArtist = artist.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let encodedAlbum = album.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               !encodedArtist.isEmpty else { return nil }
@@ -55,6 +69,8 @@ class LastFMService {
 
     /// Fetch track info
     func getTrackInfo(artist: String, track: String) async throws -> LastFMTrack? {
+        guard isConfigured else { return nil }
+
         guard let encodedArtist = artist.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let encodedTrack = track.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               !encodedArtist.isEmpty else { return nil }

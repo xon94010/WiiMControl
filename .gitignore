@@ -1,3 +1,6 @@
+# Secrets (API keys)
+Secrets.xcconfig
+
 # Xcode
 build/
 DerivedData/

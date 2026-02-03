@@ -2,9 +2,19 @@ import Foundation
 
 /// Service for fetching album information from Discogs API
 class DiscogsService {
-    private let consumerKey = "lHbPlriXFOcUHOfhcUvn"
-    private let consumerSecret = "IbwYShOlOSrGhIOhSACiCeVkQHLCkhar"
+    private let consumerKey: String
+    private let consumerSecret: String
     private let baseURL = "https://api.discogs.com"
+
+    init() {
+        self.consumerKey = Bundle.main.infoDictionary?["DISCOGS_CONSUMER_KEY"] as? String ?? ""
+        self.consumerSecret = Bundle.main.infoDictionary?["DISCOGS_CONSUMER_SECRET"] as? String ?? ""
+    }
+
+    var isConfigured: Bool {
+        !consumerKey.isEmpty && !consumerSecret.isEmpty &&
+        !consumerKey.contains("your_") && !consumerSecret.contains("your_")
+    }
     private let userAgent = "WiiMControl/1.0"
 
     private var session: URLSession {
@@ -15,6 +25,11 @@ class DiscogsService {
 
     /// Search for an album by artist and title
     func searchAlbum(artist: String, album: String) async throws -> DiscogsRelease? {
+        guard isConfigured else {
+            print("[Discogs] API keys not configured")
+            return nil
+        }
+
         // Clean up search terms
         let searchQuery = "\(artist) \(album)".trimmingCharacters(in: .whitespaces)
 
