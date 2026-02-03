@@ -16,6 +16,18 @@
 		A1000001005 /* WiiMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001006 /* WiiMService.swift */; };
 		A1000001007 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001008 /* PlayerState.swift */; };
 		A1000001009 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000001010 /* Assets.xcassets */; };
+		B1000001001 /* PlaybackControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001002 /* PlaybackControls.swift */; };
+		B1000001003 /* VolumeControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001004 /* VolumeControl.swift */; };
+		B1000001005 /* SeekBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001006 /* SeekBar.swift */; };
+		B1000001007 /* AlbumArtView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001008 /* AlbumArtView.swift */; };
+		B1000001009 /* MiniModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001010 /* MiniModeView.swift */; };
+		B1000001011 /* FullModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001012 /* FullModeView.swift */; };
+		B1000001013 /* BottomTabsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001014 /* BottomTabsSection.swift */; };
+		B1000001015 /* InfoPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001016 /* InfoPanelView.swift */; };
+		B1000001017 /* PresetRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001018 /* PresetRowView.swift */; };
+		B1000001019 /* EQRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001020 /* EQRowView.swift */; };
+		B1000001021 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001022 /* SetupView.swift */; };
+		B1000001023 /* DeviceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001024 /* DeviceRow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +42,18 @@
 		A1000001010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000001012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1000001013 /* WiiMMenuBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WiiMMenuBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1000001002 /* PlaybackControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackControls.swift; sourceTree = "<group>"; };
+		B1000001004 /* VolumeControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeControl.swift; sourceTree = "<group>"; };
+		B1000001006 /* SeekBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeekBar.swift; sourceTree = "<group>"; };
+		B1000001008 /* AlbumArtView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumArtView.swift; sourceTree = "<group>"; };
+		B1000001010 /* MiniModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniModeView.swift; sourceTree = "<group>"; };
+		B1000001012 /* FullModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullModeView.swift; sourceTree = "<group>"; };
+		B1000001014 /* BottomTabsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomTabsSection.swift; sourceTree = "<group>"; };
+		B1000001016 /* InfoPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoPanelView.swift; sourceTree = "<group>"; };
+		B1000001018 /* PresetRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetRowView.swift; sourceTree = "<group>"; };
+		B1000001020 /* EQRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EQRowView.swift; sourceTree = "<group>"; };
+		B1000001022 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
+		B1000001024 /* DeviceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,11 +82,12 @@
 				A1000001004 /* MenuBarView.swift */,
 				A1000001006 /* WiiMService.swift */,
 				A1000001008 /* PlayerState.swift */,
-				A1000001010 /* Assets.xcassets */,
 				97108C892F25BC2700F4AE1A /* DeviceDiscovery.swift */,
 				97108C8B2F25BC2700F4AE1A /* LaunchAtLogin.swift */,
 				97108C8D2F25BC2700F4AE1A /* DiscogsService.swift */,
 				97108C8F2F25BC2700F4AE1A /* LastFMService.swift */,
+				B1000001030 /* Views */,
+				A1000001010 /* Assets.xcassets */,
 				A1000001012 /* Info.plist */,
 			);
 			path = WiiMMenuBar;
@@ -74,6 +99,49 @@
 				A1000001016 /* WiiMMenuBar */,
 				A1000001015 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		B1000001030 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B1000001031 /* Player */,
+				B1000001032 /* Tabs */,
+				B1000001033 /* Setup */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B1000001031 /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				B1000001002 /* PlaybackControls.swift */,
+				B1000001004 /* VolumeControl.swift */,
+				B1000001006 /* SeekBar.swift */,
+				B1000001008 /* AlbumArtView.swift */,
+				B1000001010 /* MiniModeView.swift */,
+				B1000001012 /* FullModeView.swift */,
+			);
+			path = Player;
+			sourceTree = "<group>";
+		};
+		B1000001032 /* Tabs */ = {
+			isa = PBXGroup;
+			children = (
+				B1000001014 /* BottomTabsSection.swift */,
+				B1000001016 /* InfoPanelView.swift */,
+				B1000001018 /* PresetRowView.swift */,
+				B1000001020 /* EQRowView.swift */,
+			);
+			path = Tabs;
+			sourceTree = "<group>";
+		};
+		B1000001033 /* Setup */ = {
+			isa = PBXGroup;
+			children = (
+				B1000001022 /* SetupView.swift */,
+				B1000001024 /* DeviceRow.swift */,
+			);
+			path = Setup;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -153,6 +221,18 @@
 				97108C902F25BC2700F4AE1A /* LastFMService.swift in Sources */,
 				A1000001005 /* WiiMService.swift in Sources */,
 				A1000001007 /* PlayerState.swift in Sources */,
+				B1000001001 /* PlaybackControls.swift in Sources */,
+				B1000001003 /* VolumeControl.swift in Sources */,
+				B1000001005 /* SeekBar.swift in Sources */,
+				B1000001007 /* AlbumArtView.swift in Sources */,
+				B1000001009 /* MiniModeView.swift in Sources */,
+				B1000001011 /* FullModeView.swift in Sources */,
+				B1000001013 /* BottomTabsSection.swift in Sources */,
+				B1000001015 /* InfoPanelView.swift in Sources */,
+				B1000001017 /* PresetRowView.swift in Sources */,
+				B1000001019 /* EQRowView.swift in Sources */,
+				B1000001021 /* SetupView.swift in Sources */,
+				B1000001023 /* DeviceRow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -133,6 +133,38 @@ open WiiMMenuBar.xcodeproj
 
 Build and run with ⌘R in Xcode.
 
+## Project Structure
+
+The codebase follows a modular architecture with views organized by functionality:
+
+```
+WiiMMenuBar/
+├── WiiMMenuBarApp.swift        # App entry point
+├── MenuBarView.swift           # Main routing (minimal)
+├── WiiMService.swift           # Device communication
+├── PlayerState.swift           # Player state management
+├── DeviceDiscovery.swift       # Network device discovery
+├── DiscogsService.swift        # Discogs API integration
+├── LastFMService.swift         # Last.fm API integration
+├── LaunchAtLogin.swift         # Login item helper
+└── Views/
+    ├── Player/
+    │   ├── FullModeView.swift      # Full player UI
+    │   ├── MiniModeView.swift      # Compact player UI
+    │   ├── PlaybackControls.swift  # Play/pause/skip buttons
+    │   ├── VolumeControl.swift     # Volume slider + mute
+    │   ├── SeekBar.swift           # Progress bar with seeking
+    │   └── AlbumArtView.swift      # Album artwork display
+    ├── Tabs/
+    │   ├── BottomTabsSection.swift # Presets/EQ/Info tabs
+    │   ├── InfoPanelView.swift     # Artist & album info
+    │   ├── PresetRowView.swift     # Preset list item
+    │   └── EQRowView.swift         # EQ preset item
+    └── Setup/
+        ├── SetupView.swift         # Device discovery screen
+        └── DeviceRow.swift         # Device list item
+```
+
 ## Troubleshooting
 
 **Device not found?**
