@@ -126,8 +126,8 @@ Click the **X** button in the top-left corner of the panel.
 ## Building from Source
 
 ```bash
-git clone https://github.com/xon94010/WiiMControl.git
-cd WiiMControl
+git clone https://github.com/xon94010/WiiM-Control.git
+cd WiiM-Control
 open WiiMMenuBar.xcodeproj
 ```
 
