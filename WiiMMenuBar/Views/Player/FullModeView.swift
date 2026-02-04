@@ -7,7 +7,120 @@ struct FullModeView: View {
     @Binding var isMiniMode: Bool
     var onDeviceSelected: (WiiMDevice) -> Void
 
+    @State private var isImmersiveMode: Bool = false
+
     var body: some View {
+        if isImmersiveMode {
+            immersiveView
+        } else {
+            normalView
+        }
+    }
+
+    // MARK: - Immersive Album Art View
+
+    private var immersiveView: some View {
+        ZStack {
+            // Full album art background
+            immersiveAlbumArt
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isImmersiveMode = false
+                    }
+                }
+
+            // Overlay content
+            VStack {
+                Spacer()
+
+                // Floating controls pill
+                HStack(spacing: 24) {
+                    Button(action: {
+                        Task { await playerState.previousTrack() }
+                    }) {
+                        Image(systemName: "backward.fill")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        Task { await playerState.togglePlayPause() }
+                    }) {
+                        Image(systemName: playerState.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        Task { await playerState.nextTrack() }
+                    }) {
+                        Image(systemName: "forward.fill")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(Color.black.opacity(0.35))
+                .clipShape(Capsule())
+
+                Spacer()
+                    .frame(height: 20)
+
+                // Subtle track info at bottom
+                VStack(spacing: 2) {
+                    if !playerState.title.isEmpty {
+                        Text(playerState.title)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.white.opacity(0.9))
+                            .lineLimit(1)
+                    }
+                    if !playerState.artist.isEmpty {
+                        Text(playerState.artist)
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.6))
+                            .lineLimit(1)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
+            }
+        }
+        .frame(width: 260, height: 260)
+    }
+
+    private var immersiveAlbumArt: some View {
+        ZStack {
+            Color.black
+
+            if let nsImage = playerState.albumArtImage {
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 260, height: 260)
+                    .clipped()
+            } else {
+                LinearGradient(
+                    colors: [.purple.opacity(0.8), .blue.opacity(0.8)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .overlay {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 60))
+                        .foregroundColor(.white.opacity(0.3))
+                }
+            }
+        }
+        .frame(width: 260, height: 260)
+    }
+
+    // MARK: - Normal View
+
+    private var normalView: some View {
         VStack(spacing: 0) {
             // Header with source indicator and controls
             headerView
@@ -25,8 +138,13 @@ struct FullModeView: View {
             .padding(.vertical, 12)
             .background(Color.black)
 
-            // Album art
+            // Album art (tap to enter immersive mode)
             AlbumArtView(image: playerState.albumArtImage)
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isImmersiveMode = true
+                    }
+                }
 
             // Track info and seek bar
             VStack(spacing: 8) {

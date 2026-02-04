@@ -21,6 +21,7 @@ A native macOS menu bar app for controlling WiiM audio devices.
 - **EQ Presets** - Switch between equalizer presets
 - **Info Panel** - Artist bios and album details from Last.fm and Discogs
 - **Mini Mode** - Compact view with essential controls
+- **Immersive Mode** - Full album art with floating controls
 - **Auto Discovery** - Finds WiiM devices on your network automatically
 
 ## Installation
@@ -100,6 +101,18 @@ Switch to a compact view with essential controls:
 1. Click the collapse button (↘) in the top-right corner
 2. Mini mode shows track info, playback controls, and volume
 3. Click the expand button (↗) to return to full mode
+
+### Immersive Mode
+
+Click the album art to enter immersive mode:
+
+<p align="center">
+  <img src="screenshots/immersive.png" alt="Immersive Mode" width="280">
+</p>
+
+1. Click on the album art in the player
+2. Full-screen album art with floating playback controls
+3. Click anywhere to return to normal view
 
 ### Switching Devices
 
