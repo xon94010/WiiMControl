@@ -12,17 +12,16 @@ A native macOS menu bar app for controlling WiiM audio devices.
 
 ## Features
 
-- **Multi-Source Control** - Control WiiM devices AND local media apps (Spotify, Apple Music, etc.)
+- **Multi-Device Support** - Switch between multiple WiiM devices on your network
 - **Now Playing** - Album art, track info, and artist display
 - **Playback Controls** - Play/pause, previous, next
-- **Volume Control** - Slider with mute toggle (system volume for local media)
+- **Volume Control** - Slider with mute toggle
 - **Seek Bar** - Track progress with drag-to-seek
 - **Presets** - Quick access to saved radio stations with artwork
 - **EQ Presets** - Switch between equalizer presets
 - **Info Panel** - Artist bios and album details from Last.fm and Discogs
 - **Mini Mode** - Compact view with essential controls
 - **Auto Discovery** - Finds WiiM devices on your network automatically
-- **Source Switching** - Seamlessly switch between multiple WiiM devices and local media
 
 ## Installation
 
@@ -102,21 +101,16 @@ Switch to a compact view with essential controls:
 2. Mini mode shows track info, playback controls, and volume
 3. Click the expand button (↗) to return to full mode
 
-### Switching Sources
+### Switching Devices
 
-Easily switch between WiiM devices and local media apps:
+Easily switch between multiple WiiM devices:
 
 <p align="center">
-  <img src="screenshots/source-selector.png" alt="Source Selector" width="280">
+  <img src="screenshots/source-selector.png" alt="Device Selector" width="280">
 </p>
 
-1. Click on the source name at the top of the player
-2. Select from:
-   - **WiiM devices** - All discovered devices on your network
-   - **Local Media** - Control Spotify, Apple Music, and other media apps
-   - **Auto** - Automatically follows whichever source is playing
-
-The app controls system volume when using local media apps.
+1. Click on the device name at the top of the player
+2. Select any WiiM device discovered on your network
 
 ### Quitting the App
 

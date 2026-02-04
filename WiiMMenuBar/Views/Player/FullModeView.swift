@@ -6,7 +6,6 @@ struct FullModeView: View {
     @Bindable var discovery: DeviceDiscovery
     @Binding var isMiniMode: Bool
     var onDeviceSelected: (WiiMDevice) -> Void
-    var onSourceModeChanged: (SourceMode) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -121,8 +120,8 @@ struct FullModeView: View {
                     .fill(playerState.isConnected ? Color(red: 0.2, green: 0.9, blue: 0.4) : .orange)
                     .frame(width: 8, height: 8)
 
-                // Show source name as text
-                Text(playerState.activeSourceIdentifier.displayName)
+                // Show WiiM device name
+                Text(service.deviceName.isEmpty ? "WiiM" : service.deviceName)
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
@@ -136,18 +135,18 @@ struct FullModeView: View {
         }
         .popover(isPresented: $showSourceMenu, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
-                // WiiM devices section
+                // WiiM devices
                 if !discovery.devices.isEmpty {
                     ForEach(discovery.devices) { device in
                         Button(action: {
-                            selectWiiMDevice(device)
+                            onDeviceSelected(device)
                             showSourceMenu = false
                         }) {
                             HStack {
                                 Image(systemName: "hifispeaker.fill")
                                 Text(device.displayName)
                                 Spacer()
-                                if isCurrentWiiMDevice(device) && playerState.sourceMode == .wiim {
+                                if isCurrentWiiMDevice(device) {
                                     Image(systemName: "checkmark")
                                 }
                             }
@@ -156,46 +155,12 @@ struct FullModeView: View {
                         }
                         .buttonStyle(.plain)
                     }
-                    Divider()
+                } else {
+                    Text("Searching for devices...")
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                 }
-
-                // Local Media option
-                Button(action: {
-                    onSourceModeChanged(.local)
-                    showSourceMenu = false
-                }) {
-                    HStack {
-                        Image(systemName: "desktopcomputer")
-                        Text("Local Media")
-                        Spacer()
-                        if playerState.sourceMode == .local {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                }
-                .buttonStyle(.plain)
-
-                Divider()
-
-                // Auto option
-                Button(action: {
-                    onSourceModeChanged(.auto)
-                    showSourceMenu = false
-                }) {
-                    HStack {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                        Text("Auto")
-                        Spacer()
-                        if playerState.sourceMode == .auto {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                }
-                .buttonStyle(.plain)
             }
             .frame(minWidth: 180)
         }
@@ -230,10 +195,5 @@ struct FullModeView: View {
 
     private func isCurrentWiiMDevice(_ device: WiiMDevice) -> Bool {
         service.ipAddress == device.host
-    }
-
-    private func selectWiiMDevice(_ device: WiiMDevice) {
-        onDeviceSelected(device)
-        onSourceModeChanged(.wiim)
     }
 }

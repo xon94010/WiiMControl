@@ -31,10 +31,7 @@ struct MenuBarView: View {
                 service: service,
                 discovery: discovery,
                 isMiniMode: $isMiniMode,
-                onDeviceSelected: onDeviceSelected,
-                onSourceModeChanged: { mode in
-                    playerState.sourceMode = mode
-                }
+                onDeviceSelected: onDeviceSelected
             )
         }
     }
