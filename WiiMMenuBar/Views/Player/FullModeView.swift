@@ -122,7 +122,7 @@ struct FullModeView: View {
 
                 // Show WiiM device name
                 Text(service.deviceName.isEmpty ? "WiiM" : service.deviceName)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.white)
             }
             Image(systemName: "chevron.down")
