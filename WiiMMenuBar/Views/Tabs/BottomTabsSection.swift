@@ -9,65 +9,69 @@ struct BottomTabsSection: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Tab headers
+            // Tab headers - conditionally show based on capabilities
             HStack(spacing: 0) {
-                // Presets tab
-                VStack(spacing: 3) {
-                    Text("Presets")
-                        .font(.caption)
-                        .foregroundColor(showPresets ? .white : .white.opacity(0.7))
-                    Image(systemName: showPresets ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 9))
-                        .foregroundColor(showPresets ? .white.opacity(0.6) : .white.opacity(0.4))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(showPresets ? Color.white.opacity(0.1) : Color.clear)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if showPresets {
-                        showPresets = false
-                    } else {
-                        showPresets = true
-                        showEQ = false
-                        showInfo = false
+                // Presets tab (WiiM only)
+                if playerState.hasPresets {
+                    VStack(spacing: 3) {
+                        Text("Presets")
+                            .font(.caption)
+                            .foregroundColor(showPresets ? .white : .white.opacity(0.7))
+                        Image(systemName: showPresets ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 9))
+                            .foregroundColor(showPresets ? .white.opacity(0.6) : .white.opacity(0.4))
                     }
-                }
-
-                // Divider
-                Rectangle()
-                    .fill(Color.white.opacity(0.2))
-                    .frame(width: 1, height: 30)
-
-                // EQ tab
-                VStack(spacing: 3) {
-                    Text("EQ")
-                        .font(.caption)
-                        .foregroundColor(showEQ ? .white : .white.opacity(0.7))
-                    Image(systemName: showEQ ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 9))
-                        .foregroundColor(showEQ ? .white.opacity(0.6) : .white.opacity(0.4))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(showEQ ? Color.white.opacity(0.1) : Color.clear)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if showEQ {
-                        showEQ = false
-                    } else {
-                        showEQ = true
-                        showPresets = false
-                        showInfo = false
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(showPresets ? Color.white.opacity(0.1) : Color.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if showPresets {
+                            showPresets = false
+                        } else {
+                            showPresets = true
+                            showEQ = false
+                            showInfo = false
+                        }
                     }
+
+                    // Divider
+                    Rectangle()
+                        .fill(Color.white.opacity(0.2))
+                        .frame(width: 1, height: 30)
                 }
 
-                // Divider
-                Rectangle()
-                    .fill(Color.white.opacity(0.2))
-                    .frame(width: 1, height: 30)
+                // EQ tab (WiiM only)
+                if playerState.hasEQ {
+                    VStack(spacing: 3) {
+                        Text("EQ")
+                            .font(.caption)
+                            .foregroundColor(showEQ ? .white : .white.opacity(0.7))
+                        Image(systemName: showEQ ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 9))
+                            .foregroundColor(showEQ ? .white.opacity(0.6) : .white.opacity(0.4))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(showEQ ? Color.white.opacity(0.1) : Color.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if showEQ {
+                            showEQ = false
+                        } else {
+                            showEQ = true
+                            showPresets = false
+                            showInfo = false
+                        }
+                    }
 
-                // Info tab
+                    // Divider
+                    Rectangle()
+                        .fill(Color.white.opacity(0.2))
+                        .frame(width: 1, height: 30)
+                }
+
+                // Info tab (always available)
                 VStack(spacing: 3) {
                     Text("Info")
                         .font(.caption)
@@ -93,8 +97,8 @@ struct BottomTabsSection: View {
             }
             .background(Color.black.opacity(0.6))
 
-            // Expandable presets list
-            if !playerState.presets.isEmpty {
+            // Expandable presets list (WiiM only)
+            if playerState.hasPresets, !playerState.presets.isEmpty {
                 VStack(spacing: 2) {
                     ForEach(playerState.presets) { preset in
                         PresetRowView(preset: preset) {
@@ -110,27 +114,29 @@ struct BottomTabsSection: View {
                 .opacity(showPresets ? 1 : 0)
             }
 
-            // Expandable EQ list (scrollable)
-            ScrollView {
-                VStack(spacing: 2) {
-                    ForEach(playerState.eqPresets, id: \.self) { eq in
-                        EQRowView(
-                            name: eq,
-                            isSelected: playerState.currentEQ == eq
-                        ) {
-                            Task {
-                                await playerState.loadEQPreset(eq)
-                                showEQ = false
+            // Expandable EQ list (WiiM only, scrollable)
+            if playerState.hasEQ {
+                ScrollView {
+                    VStack(spacing: 2) {
+                        ForEach(playerState.eqPresets, id: \.self) { eq in
+                            EQRowView(
+                                name: eq,
+                                isSelected: playerState.currentEQ == eq
+                            ) {
+                                Task {
+                                    await playerState.loadEQPreset(eq)
+                                    showEQ = false
+                                }
                             }
                         }
                     }
                 }
+                .frame(height: showEQ ? 180 : 0)
+                .clipped()
+                .opacity(showEQ ? 1 : 0)
             }
-            .frame(height: showEQ ? 180 : 0)
-            .clipped()
-            .opacity(showEQ ? 1 : 0)
 
-            // Expandable Info section (scrollable)
+            // Expandable Info section (scrollable, always available)
             ScrollView {
                 InfoPanelView(playerState: playerState)
             }
@@ -143,6 +149,13 @@ struct BottomTabsSection: View {
                 if showInfo {
                     Task { await playerState.fetchLinerNotes() }
                 }
+            }
+        }
+        // Close WiiM-specific panels when switching to local media
+        .onChange(of: playerState.isWiiMActive) { _, isWiiM in
+            if !isWiiM {
+                showPresets = false
+                showEQ = false
             }
         }
     }

@@ -44,7 +44,9 @@ struct SeekBar: View {
                         .frame(width: max(0, geometry.size.width * CGFloat(seekSlider / Double(max(1, playerState.duration)))), height: 4)
                 }
                 .gesture(
-                    DragGesture(minimumDistance: 0)
+                    // Only enable drag gesture if seeking is supported
+                    playerState.canSeek ?
+                        DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             isDraggingSeek = true
                             let percent = max(0, min(1, value.location.x / geometry.size.width))
@@ -54,7 +56,10 @@ struct SeekBar: View {
                             isDraggingSeek = false
                             Task { await playerState.seek(to: Int(seekSlider)) }
                         }
+                        : nil
                 )
+                // Visual indication that seeking is disabled
+                .opacity(playerState.canSeek ? 1.0 : 0.7)
             }
             .frame(height: 4)
             .onAppear {
@@ -72,6 +77,13 @@ struct SeekBar: View {
             }
             .onChange(of: playerState.isPlaying) { _, _ in
                 startSeekTimer()
+            }
+
+            // Show hint when seeking is not available
+            if !playerState.canSeek {
+                Text("Seek not available")
+                    .font(.system(size: 8))
+                    .foregroundColor(.white.opacity(0.3))
             }
         }
     }

@@ -12,6 +12,7 @@ struct WiiMDevice: Identifiable, Hashable {
     }
 }
 
+@MainActor
 @Observable
 class DeviceDiscovery {
     var devices: [WiiMDevice] = []
@@ -32,21 +33,23 @@ class DeviceDiscovery {
         self.browser = browser
 
         browser.stateUpdateHandler = { [weak self] state in
-            switch state {
-            case .ready:
-                print("Browser ready")
-            case let .failed(error):
-                print("Browser failed: \(error)")
-                self?.isSearching = false
-            case .cancelled:
-                self?.isSearching = false
-            default:
-                break
+            Task { @MainActor in
+                switch state {
+                case .ready:
+                    print("Browser ready")
+                case let .failed(error):
+                    print("Browser failed: \(error)")
+                    self?.isSearching = false
+                case .cancelled:
+                    self?.isSearching = false
+                default:
+                    break
+                }
             }
         }
 
         browser.browseResultsChangedHandler = { [weak self] results, _ in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.handleResults(results)
             }
         }
@@ -89,9 +92,9 @@ class DeviceDiscovery {
                 {
                     let hostString: String = switch host {
                     case let .ipv4(addr):
-                        self?.ipv4String(from: addr) ?? ""
+                        Self.ipv4String(from: addr)
                     case let .ipv6(addr):
-                        self?.ipv6String(from: addr) ?? ""
+                        Self.ipv6String(from: addr)
                     case let .name(hostname, _):
                         hostname
                     @unknown default:
@@ -99,15 +102,16 @@ class DeviceDiscovery {
                     }
 
                     if !hostString.isEmpty {
-                        DispatchQueue.main.async {
+                        Task { @MainActor [weak self] in
+                            guard let self else { return }
                             let device = WiiMDevice(
                                 id: "\(hostString):\(port)",
                                 name: name,
                                 host: hostString,
                                 port: port.rawValue
                             )
-                            if !self!.devices.contains(where: { $0.host == hostString }) {
-                                self?.devices.append(device)
+                            if !self.devices.contains(where: { $0.host == hostString }) {
+                                self.devices.append(device)
                             }
                         }
                     }
@@ -123,7 +127,7 @@ class DeviceDiscovery {
         connection.start(queue: .global())
     }
 
-    private func cleanIPAddress(_ str: String) -> String {
+    private nonisolated static func cleanIPAddress(_ str: String) -> String {
         // Remove interface suffix like %en0
         if let percentIndex = str.firstIndex(of: "%") {
             return String(str[..<percentIndex])
@@ -131,12 +135,12 @@ class DeviceDiscovery {
         return str
     }
 
-    private func ipv4String(from address: IPv4Address) -> String {
+    private nonisolated static func ipv4String(from address: IPv4Address) -> String {
         // Use debugDescription but clean it
         cleanIPAddress(address.debugDescription)
     }
 
-    private func ipv6String(from address: IPv6Address) -> String {
+    private nonisolated static func ipv6String(from address: IPv6Address) -> String {
         // For IPv6, use debugDescription but clean it
         cleanIPAddress(address.debugDescription)
     }

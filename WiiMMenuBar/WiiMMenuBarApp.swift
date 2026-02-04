@@ -11,16 +11,21 @@ struct WiiMMenuBarApp: App {
     }
 }
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
 
     private var service = WiiMService()
+    private var coordinator: MediaCoordinator!
     private var playerState: PlayerState?
     private var discovery = DeviceDiscovery()
     private var isConnected = false
 
     func applicationDidFinishLaunching(_: Notification) {
+        // Create the media coordinator
+        coordinator = MediaCoordinator(wiimService: service)
+
         // Create status bar item with square length for proper popover centering
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
@@ -38,12 +43,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         updatePopoverContent()
 
-        // Auto-connect if we have a saved device
+        // Auto-connect if we have a saved WiiM device
         if service.isConfigured {
-            let state = PlayerState(service: service)
+            let state = PlayerState(service: service, coordinator: coordinator)
             playerState = state
             state.startPolling()
             isConnected = true
+            updatePopoverContent()
+        } else {
+            // Even without WiiM, start local media monitoring
+            // Create a player state that can show local media
+            let state = PlayerState(service: service, coordinator: coordinator)
+            playerState = state
+            // Start monitoring - it will use local media as fallback
+            coordinator.startMonitoring()
+            // Show setup view to select a WiiM device, but local media works
             updatePopoverContent()
         }
     }
@@ -91,7 +105,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         playerState?.stopPolling()
         service.ipAddress = device.host
         service.deviceName = device.displayName
-        let state = PlayerState(service: service)
+        let state = PlayerState(service: service, coordinator: coordinator)
         playerState = state
         state.startPolling()
         isConnected = true
@@ -105,6 +119,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         service.deviceName = ""
         isConnected = false
         discovery.startDiscovery()
+
+        // Create new player state for local media only
+        let state = PlayerState(service: service, coordinator: coordinator)
+        playerState = state
+        coordinator.startMonitoring()
+
         updatePopoverContent()
     }
 }

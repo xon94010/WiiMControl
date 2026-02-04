@@ -29,8 +29,12 @@ struct MenuBarView: View {
             FullModeView(
                 playerState: playerState,
                 service: service,
+                discovery: discovery,
                 isMiniMode: $isMiniMode,
-                onDisconnect: onDisconnect
+                onDeviceSelected: onDeviceSelected,
+                onSourceModeChanged: { mode in
+                    playerState.sourceMode = mode
+                }
             )
         }
     }

@@ -12,15 +12,17 @@ A native macOS menu bar app for controlling WiiM audio devices.
 
 ## Features
 
+- **Multi-Source Control** - Control WiiM devices AND local media apps (Spotify, Apple Music, etc.)
 - **Now Playing** - Album art, track info, and artist display
 - **Playback Controls** - Play/pause, previous, next
-- **Volume Control** - Slider with mute toggle
+- **Volume Control** - Slider with mute toggle (system volume for local media)
 - **Seek Bar** - Track progress with drag-to-seek
 - **Presets** - Quick access to saved radio stations with artwork
 - **EQ Presets** - Switch between equalizer presets
 - **Info Panel** - Artist bios and album details from Last.fm and Discogs
 - **Mini Mode** - Compact view with essential controls
 - **Auto Discovery** - Finds WiiM devices on your network automatically
+- **Source Switching** - Seamlessly switch between multiple WiiM devices and local media
 
 ## Installation
 
@@ -107,12 +109,21 @@ Switch to a compact view with essential controls:
 2. Mini mode shows track info, playback controls, and volume
 3. Click the expand button (↗) to return to full mode
 
-### Switching Devices
+### Switching Sources
 
-To disconnect or switch to a different device:
+Easily switch between WiiM devices and local media apps:
 
-1. Click on the device name at the top of the player
-2. You'll return to the device selection screen
+<p align="center">
+  <img src="screenshots/source-selector.png" alt="Source Selector" width="280">
+</p>
+
+1. Click on the source name at the top of the player
+2. Select from:
+   - **WiiM devices** - All discovered devices on your network
+   - **Local Media** - Control Spotify, Apple Music, and other media apps
+   - **Auto** - Automatically follows whichever source is playing
+
+The app controls system volume when using local media apps.
 
 ### Quitting the App
 
@@ -153,9 +164,13 @@ The codebase follows a modular architecture with views organized by functionalit
 WiiMMenuBar/
 ├── WiiMMenuBarApp.swift        # App entry point
 ├── MenuBarView.swift           # Main routing (minimal)
-├── WiiMService.swift           # Device communication
+├── WiiMService.swift           # WiiM device communication
 ├── PlayerState.swift           # Player state management
 ├── DeviceDiscovery.swift       # Network device discovery
+├── MediaCoordinator.swift      # Multi-source orchestration
+├── MediaSource.swift           # Source protocol & types
+├── WiiMMediaSource.swift       # WiiM source adapter
+├── LocalMediaSource.swift      # Local media (Spotify, etc.)
 ├── DiscogsService.swift        # Discogs API integration
 ├── LastFMService.swift         # Last.fm API integration
 ├── LaunchAtLogin.swift         # Login item helper
@@ -166,7 +181,8 @@ WiiMMenuBar/
     │   ├── PlaybackControls.swift  # Play/pause/skip buttons
     │   ├── VolumeControl.swift     # Volume slider + mute
     │   ├── SeekBar.swift           # Progress bar with seeking
-    │   └── AlbumArtView.swift      # Album artwork display
+    │   ├── AlbumArtView.swift      # Album artwork display
+    │   └── SourceIndicator.swift   # Source icon display
     ├── Tabs/
     │   ├── BottomTabsSection.swift # Presets/EQ/Info tabs
     │   ├── InfoPanelView.swift     # Artist & album info

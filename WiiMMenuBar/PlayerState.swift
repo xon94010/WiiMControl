@@ -3,8 +3,12 @@ import Foundation
 import Observation
 
 /// Observable model for the current player state
+/// Now integrated with MediaCoordinator for unified media control
+@MainActor
 @Observable
 class PlayerState {
+    // MARK: - Public Properties (used by UI)
+
     var title: String = ""
     var artist: String = ""
     var album: String = ""
@@ -26,185 +30,237 @@ class PlayerState {
     var isLoadingLinerNotes: Bool = false
     var linerNotesError: String?
 
-    private var pollingTimer: Timer?
+    // MARK: - Media Coordinator Integration
+
+    /// The media coordinator managing all sources
+    let coordinator: MediaCoordinator
+
+    /// Active source identifier for display
+    var activeSourceIdentifier: MediaSourceIdentifier {
+        coordinator.activeSourceIdentifier
+    }
+
+    /// Whether WiiM is the active source
+    var isWiiMActive: Bool {
+        coordinator.isWiiMActive
+    }
+
+    /// Whether local media is the active source
+    var isLocalActive: Bool {
+        coordinator.isLocalActive
+    }
+
+    /// Current source mode preference
+    var sourceMode: SourceMode {
+        get { coordinator.sourceMode }
+        set { coordinator.sourceMode = newValue }
+    }
+
+    /// Whether seeking is supported by current source
+    var canSeek: Bool {
+        coordinator.canSeek
+    }
+
+    /// Whether volume control is supported
+    var canControlVolume: Bool {
+        coordinator.canControlVolume
+    }
+
+    /// Whether presets are available
+    var hasPresets: Bool {
+        coordinator.hasPresets
+    }
+
+    /// Whether EQ is available
+    var hasEQ: Bool {
+        coordinator.hasEQ
+    }
+
+    /// App icon for the active source (for local media apps)
+    var sourceAppIcon: NSImage? {
+        coordinator.local.appIcon
+    }
+
+    // MARK: - Private Properties
+
     private let service: WiiMService
     private let discogsService = DiscogsService()
     private let lastFMService = LastFMService()
     private var lastLinerNotesQuery: String = ""
 
-    init(service: WiiMService) {
+    // MARK: - Initialization
+
+    init(service: WiiMService, coordinator: MediaCoordinator) {
         self.service = service
-    }
+        self.coordinator = coordinator
 
-    func startPolling() {
-        // Poll immediately
-        Task {
-            await fetchStatus()
-            await fetchPresets()
-            await fetchEQPresets()
-        }
-
-        // Then poll every 2 seconds
-        pollingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                await self?.fetchStatus()
+        // Set up coordinator callbacks
+        coordinator.onActiveSourceChanged = { [weak self] in
+            Task { @MainActor in
+                self?.syncFromActiveSource()
             }
         }
+
+        // Sync when any source's media info changes
+        coordinator.onMediaInfoChanged = { [weak self] in
+            Task { @MainActor in
+                self?.syncFromActiveSource()
+            }
+        }
+    }
+
+    // MARK: - Lifecycle
+
+    func startPolling() {
+        coordinator.startMonitoring()
+        syncFromActiveSource()
     }
 
     func stopPolling() {
-        pollingTimer?.invalidate()
-        pollingTimer = nil
+        coordinator.stopMonitoring()
     }
 
-    func fetchStatus() async {
-        do {
-            let status = try await service.getPlayerStatus()
-            let oldTitle = title
+    // MARK: - State Synchronization
 
-            title = status.decodedTitle
-            artist = status.decodedArtist
-            album = status.decodedAlbum
-            isPlaying = status.isPlaying
-            volume = status.volumeLevel
-            isMuted = status.isMuted
-            currentPosition = status.currentPosition
-            duration = status.duration
-            isConnected = true
+    /// Sync PlayerState properties from the active source
+    private func syncFromActiveSource() {
+        let oldTitle = title
+
+        if isWiiMActive {
+            // Sync from WiiM source
+            let wiim = coordinator.wiim
+            title = wiim.mediaInfo.title
+            artist = wiim.mediaInfo.artist
+            album = wiim.mediaInfo.album
+            isPlaying = wiim.mediaInfo.isPlaying
+            currentPosition = wiim.mediaInfo.position
+            duration = wiim.mediaInfo.duration
+            volume = wiim.volume
+            isMuted = wiim.isMuted
+            albumArtImage = wiim.albumArtImage
+            currentPresetArtworkURL = wiim.currentPresetArtworkURL
+            presets = wiim.presets
+            eqPresets = wiim.eqPresets
+            currentEQ = wiim.currentEQ
+            isConnected = wiim.isAvailable
             errorMessage = nil
+        } else {
+            // Sync from local source
+            let local = coordinator.local
 
-            // Note: WiiM API doesn't reliably expose current EQ preset
-            // currentEQ is only set when user selects via our app
-
-            // Only reload album art if track changed
-            if oldTitle != title {
-                // Clear preset artwork if track changed (user switched source)
-                // unless we just played a preset (handled in playPreset)
-                if currentPresetArtworkURL != nil, !isCurrentlyPlayingPreset() {
-                    currentPresetArtworkURL = nil
+            // If local media info is empty, trigger a fetch
+            if local.mediaInfo.title.isEmpty && local.mediaInfo.artist.isEmpty {
+                Task {
+                    await local.refreshNowPlaying()
+                    await MainActor.run {
+                        syncFromActiveSource()
+                    }
                 }
-                await loadAlbumArt()
-                // Clear liner notes so they get refetched for new track
-                clearLinerNotes()
+                return
             }
-        } catch {
-            isConnected = false
-            if let wiimError = error as? WiiMError {
-                errorMessage = wiimError.errorDescription
+
+            title = local.mediaInfo.title
+            artist = local.mediaInfo.artist
+            album = local.mediaInfo.album
+            isPlaying = local.mediaInfo.isPlaying
+            currentPosition = local.mediaInfo.position
+            duration = local.mediaInfo.duration
+            // Use system volume for local media
+            local.refreshSystemVolume()
+            volume = local.systemVolume
+            isMuted = local.isMuted
+            // Use artwork data from local if available
+            if let artworkData = local.mediaInfo.artworkData {
+                albumArtImage = NSImage(data: artworkData)
             } else {
-                errorMessage = "Connection failed"
+                // Fall back to iTunes lookup for local media
+                Task {
+                    await loadAlbumArtFromiTunes()
+                }
             }
+            currentPresetArtworkURL = nil
+            presets = []
+            eqPresets = []
+            currentEQ = ""
+            isConnected = local.isAvailable || local.mediaInfo.hasContent
+            errorMessage = nil
+        }
+
+        // Clear liner notes if track changed
+        if oldTitle != title {
+            clearLinerNotes()
         }
     }
+
+    // MARK: - Playback Commands (routed through coordinator)
 
     func togglePlayPause() async {
-        do {
-            try await service.togglePlayPause(isCurrentlyPlaying: isPlaying)
-            await fetchStatus()
-        } catch {
-            errorMessage = formatError(error, action: "play/pause")
-        }
+        await coordinator.togglePlayPause()
+        syncFromActiveSource()
     }
 
     func nextTrack() async {
-        do {
-            try await service.next()
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            await fetchStatus()
-        } catch {
-            errorMessage = formatError(error, action: "skip")
-        }
+        await coordinator.nextTrack()
+        syncFromActiveSource()
     }
 
     func previousTrack() async {
-        do {
-            try await service.previous()
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            await fetchStatus()
-        } catch {
-            errorMessage = formatError(error, action: "previous")
-        }
+        await coordinator.previousTrack()
+        syncFromActiveSource()
     }
 
     func setVolume(_ level: Int) async {
-        do {
-            try await service.setVolume(level)
-            volume = level
-        } catch {
-            errorMessage = formatError(error, action: "set volume")
-        }
+        guard canControlVolume else { return }
+        await coordinator.setVolume(level)
+        volume = level
     }
 
     func toggleMute() async {
-        do {
-            try await service.setMute(!isMuted)
-            isMuted = !isMuted
-        } catch {
-            errorMessage = formatError(error, action: "mute")
+        guard canControlVolume else { return }
+        if isWiiMActive {
+            await coordinator.wiim.toggleMute()
+            isMuted = coordinator.wiim.isMuted
+        } else {
+            await coordinator.local.toggleMute()
+            isMuted = coordinator.local.isMuted
         }
     }
 
     func seek(to seconds: Int) async {
-        do {
-            try await service.seek(to: seconds)
-            currentPosition = seconds
-        } catch {
-            errorMessage = formatError(error, action: "seek")
-        }
+        guard canSeek else { return }
+        await coordinator.seek(to: seconds)
+        currentPosition = seconds
     }
 
+    // MARK: - WiiM-specific Commands
+
     func fetchPresets() async {
-        do {
-            presets = try await service.getPresets()
-        } catch {
-            // Silently fail - presets are optional
-        }
+        guard isWiiMActive else { return }
+        await coordinator.wiim.fetchPresets()
+        presets = coordinator.wiim.presets
     }
 
     func fetchEQPresets() async {
-        do {
-            eqPresets = try await service.getEQList()
-            // Note: WiiM API doesn't reliably return current EQ status
-            // currentEQ will be set when user selects one through our app
-        } catch {
-            // Silently fail - EQ is optional
-        }
+        guard isWiiMActive else { return }
+        await coordinator.wiim.fetchEQPresets()
+        eqPresets = coordinator.wiim.eqPresets
     }
 
     func loadEQPreset(_ preset: String) async {
-        do {
-            try await service.loadEQPreset(preset)
-            currentEQ = preset
-        } catch {
-            errorMessage = formatError(error, action: "set EQ")
-        }
+        guard isWiiMActive else { return }
+        await coordinator.wiim.loadEQPreset(preset)
+        currentEQ = coordinator.wiim.currentEQ
     }
 
     func playPreset(_ preset: WiiMPreset) async {
-        do {
-            // Store the preset artwork URL for display
-            currentPresetArtworkURL = preset.artworkURL
-            try await service.playPreset(preset.number)
-            // Wait a bit then refresh status
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            await fetchStatus()
-            // Load the preset artwork immediately
-            await loadAlbumArt()
-        } catch {
-            errorMessage = formatError(error, action: "play preset")
-        }
+        guard isWiiMActive else { return }
+        await coordinator.wiim.playPreset(preset)
+        syncFromActiveSource()
     }
 
-    private func loadAlbumArt() async {
-        // First, try preset artwork if available
-        if let presetURL = currentPresetArtworkURL {
-            if let image = await loadImage(from: presetURL) {
-                albumArtImage = image
-                return
-            }
-        }
+    // MARK: - Album Art
 
-        // Use iTunes Search API to find album art
+    private func loadAlbumArtFromiTunes() async {
         guard !artist.isEmpty || !title.isEmpty else {
             albumArtImage = nil
             return
@@ -214,7 +270,6 @@ class PlayerState {
         guard let encodedSearch = searchTerm.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let url = URL(string: "https://itunes.apple.com/search?term=\(encodedSearch)&media=music&limit=1")
         else {
-            albumArtImage = nil
             return
         }
 
@@ -223,65 +278,21 @@ class PlayerState {
             let response = try JSONDecoder().decode(ITunesSearchResponse.self, from: data)
 
             if let artworkUrl = response.results.first?.artworkUrl100 {
-                // Get higher resolution artwork (replace 100x100 with 600x600)
                 let highResUrl = artworkUrl.replacingOccurrences(of: "100x100", with: "600x600")
                 if let imageUrl = URL(string: highResUrl) {
                     let (imageData, _) = try await URLSession.shared.data(from: imageUrl)
                     albumArtImage = NSImage(data: imageData)
-                    return
                 }
             }
         } catch {
             // Failed to load from iTunes
         }
-
-        albumArtImage = nil
     }
 
-    private func loadImage(from url: URL) async -> NSImage? {
-        // Try HTTPS version first
-        var urlToTry = url
-        if url.scheme == "http" {
-            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-            components?.scheme = "https"
-            if let httpsURL = components?.url {
-                urlToTry = httpsURL
-            }
-        }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: urlToTry)
-            return NSImage(data: data)
-        } catch {
-            // HTTPS failed, try original URL
-            if urlToTry != url {
-                do {
-                    let (data, _) = try await URLSession.shared.data(from: url)
-                    return NSImage(data: data)
-                } catch {
-                    return nil
-                }
-            }
-            return nil
-        }
-    }
-
-    /// Check if current playback matches a preset (by name)
-    private func isCurrentlyPlayingPreset() -> Bool {
-        let currentTitle = title.lowercased()
-        for preset in presets {
-            if let presetName = preset.name?.lowercased(), !presetName.isEmpty {
-                // Check if the preset name appears in the title or vice versa
-                if currentTitle.contains(presetName) || presetName.contains(currentTitle) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
+    // MARK: - Computed Properties
 
     var nowPlayingText: String {
-        if !isConnected {
+        if !isConnected && isWiiMActive {
             return "Not Connected"
         }
         if title.isEmpty, artist.isEmpty {
@@ -296,8 +307,9 @@ class PlayerState {
         return "\(artist) - \(title)"
     }
 
+    // MARK: - Liner Notes
+
     func fetchLinerNotes() async {
-        // Don't fetch if no album info
         guard !artist.isEmpty || !title.isEmpty else {
             linerNotes = nil
             artistInfo = nil
@@ -306,11 +318,9 @@ class PlayerState {
             return
         }
 
-        // Use album if available, otherwise use title
         let albumQuery = album.isEmpty ? title : album
         let query = "\(artist) \(albumQuery)"
 
-        // Don't refetch if same query
         if query == lastLinerNotesQuery && (linerNotes != nil || artistInfo != nil) {
             return
         }
@@ -319,7 +329,6 @@ class PlayerState {
         isLoadingLinerNotes = true
         linerNotesError = nil
 
-        // Fetch from both services in parallel
         async let discogsResult = discogsService.searchAlbum(artist: artist, album: albumQuery)
         async let lastFMArtistResult = lastFMService.getArtistInfo(artist: artist)
         async let lastFMAlbumResult = lastFMService.getAlbumInfo(artist: artist, album: albumQuery)
@@ -358,21 +367,6 @@ class PlayerState {
         albumInfo = nil
         linerNotesError = nil
         lastLinerNotesQuery = ""
-    }
-
-    /// Format error for display to user
-    private func formatError(_ error: Error, action: String) -> String {
-        if let wiimError = error as? WiiMError {
-            return wiimError.errorDescription ?? "Failed to \(action)"
-        }
-        // For other errors, provide context
-        let description = error.localizedDescription
-        if description.contains("timed out") {
-            return "Device not responding"
-        } else if description.contains("Could not connect") || description.contains("cannot find host") {
-            return "Cannot reach device"
-        }
-        return "Failed to \(action): \(description)"
     }
 }
 
