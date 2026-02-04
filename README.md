@@ -38,16 +38,9 @@ A native macOS menu bar app for controlling WiiM audio devices.
 
 ## User Guide
 
-### Connecting to a Device
+### Getting Started
 
-When you first launch the app, click the speaker icon in your menu bar to open the control panel.
-
-<p align="center">
-  <img src="screenshots/device-selection.png" alt="Device Selection" width="280">
-</p>
-
-1. Your WiiM devices will appear automatically
-2. Click on a device to connect to it
+Click the speaker icon in your menu bar to open the control panel. The app automatically discovers WiiM devices on your network and can also control local media apps like Spotify.
 
 ### Player Controls
 
