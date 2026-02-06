@@ -29,12 +29,16 @@ A native macOS menu bar app for controlling WiiM audio devices.
 ### Option 1: DMG (Recommended)
 1. Download `WiiMControl.dmg` from [Releases](../../releases)
 2. Open the DMG and drag `WiiMControl.app` to Applications
-3. Right-click → Open (first launch only, to bypass Gatekeeper)
+3. Open Terminal and run: `xattr -cr /Applications/WiiMControl.app`
+4. Double-click to open the app
 
 ### Option 2: ZIP
 1. Download `WiiMControl.zip` from [Releases](../../releases)
 2. Unzip and drag `WiiMControl.app` to Applications
-3. Right-click → Open (first launch only, to bypass Gatekeeper)
+3. Open Terminal and run: `xattr -cr /Applications/WiiMControl.app`
+4. Double-click to open the app
+
+> **Note:** The `xattr` command removes the macOS quarantine flag. This is needed because the app isn't signed with an Apple Developer certificate. Alternatively, go to **System Settings → Privacy & Security** and click "Open Anyway" after the first launch attempt.
 
 ## User Guide
 
